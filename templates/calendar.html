@@ -1,0 +1,186 @@
+{% extends "layout.html" %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename="css/calendar.css") }}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.14/index.css">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.14/index.global.min.js" integrity="sha256-hk2Q9BXDSq54aGHbj6/T9up41uNJ5tLQw49s0HqWfPw=" crossorigin="anonymous"></script>
+
+
+{% endblock %}
+
+{% block body %}
+
+    <!-- Calendar -->
+    <div class="container">
+        <div id="calendar">
+            <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">Add Event</button>
+        </div>
+        
+    </div>
+
+    <!-- Event Info Modal -->
+    <div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content text-bg-dark">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="eventModalLabel">Event Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h2 id="modalTitle"></h2>
+                    <p id="modalDescription"></p>
+                    <p><strong>Start:</strong> <span id="modalStart"></span></p>
+                    <p><strong>End:</strong> <span id="modalEnd"></span></p>
+                    <span name="eventId" id="eventId"></span>
+                </div>
+                <div class="modal-footer">
+                    <form action="/delete" method="post">
+                        <input type="hidden" id="event_id" name="event_id">
+                        <button class="btn btn-custom" type="submit">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Event Offcanvas -->
+    <div class="container mt-5">
+        
+        <div class="offcanvas offcanvas-end text-bg-dark" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title" id="offcanvasRightLabel">Add Event</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <form id="addForm" action="/eventAdd" method="post">
+                    <div class="mb-3">
+                      <label for="title" class="form-label">Event Title</label>
+                      <input type="text" class="form-control" name="title" id="title" placeholder="Enter the event title" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="startDate" class="form-label">Start</label>
+                        <input type="date" class="form-control" name="startDate" id="startDate" required>
+                        <input type="time" class="form-control" name="startTime" id="startTime" required>
+
+                        <div class="form-check form-switch d-flex align-items-center">
+                            <input type="hidden" name="hiddenAllDay" id="hiddenAllDay" value="off">
+                            <input class="form-check-input" type="checkbox" id="toggleSwitch" value="on">
+                            <label class="form-check-label mb-0 ms-2" for="toggleSwitch">All Day</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="endDate" class="form-label">End</label>
+                        <input type="date" class="form-control" name="endDate" id="endDate">
+                        <input type="time" class="form-control" name="endTime" id="endTime" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" name="description" id="description" placeholder="Enter a description"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="url" class="form-label">URL</label>
+                        <input type="text" class="form-control" name="url" id="url" placeholder="Enter a URL">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Event Color</label><br>
+                        <input type="radio" class="form-check-input me-1" name="color" id="red" value="rgb(213, 0, 0)">
+                        <input type="radio" class="form-check-input me-1" name="color" id="orange" value="rgb(51, 182, 121)">
+                        <input type="radio" class="form-check-input me-1" name="color" id="yellow" value="rgb(246, 191, 38)">
+                        <input type="radio" class="form-check-input me-1" name="color" id="green" value="rgb(51, 182, 121)">
+                        <input type="radio" class="form-check-input me-1" name="color" id="peacock" value="rgb(3, 155, 229)">
+                        <input type="radio" class="form-check-input me-1" name="color" id="blue" value="rgb(13, 110, 253)">
+                        <input type="radio" class="form-check-input me-1" name="color" id="purple" value="rgb(142, 36, 170)">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="submit">Add</button>
+                  </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                events: [
+                    {% for event in events %}
+                    {
+                        id: '{{event.id}}',
+                        title: '{{event.title}}',
+                        start: '{{event.start}}',
+                        end: '{{event.end}}',
+                        url: '{{event.url}}',
+                        description: '{{event.description}}',
+                        backgroundColor: '{{event.color}}',
+                        borderColor: '{{event.color}}'
+                    },
+                    {% endfor %}
+                ],
+                eventClick: function(info) {
+                    info.jsEvent.preventDefault();
+                    
+                    document.getElementById('modalTitle').innerText = info.event.title;
+                    document.getElementById('modalDescription').innerText = info.event.extendedProps.description;
+                    document.getElementById('event_id').value = info.event.id;
+    
+                    if (info.event.allDay) {
+                        document.getElementById('modalStart').innerText = info.event.start.toDateString();
+                        document.getElementById('modalEnd').innerText = info.event.end ? info.event.end.toDateString() + 'All Day' : 'All Day';
+                    }
+                    else {   
+                        document.getElementById('modalStart').innerText = info.event.start.toLocaleString();
+                        document.getElementById('modalEnd').innerText = info.event.end.toLocaleString();
+                    }
+                    
+                    // Show the modal
+                    var eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
+                    eventModal.show();
+                }
+            });
+            calendar.render();
+    
+    
+            document.getElementById('toggleSwitch').addEventListener('change', function() {
+                var startTime = document.getElementById('startTime');
+                var endTime = document.getElementById('endTime');
+    
+                if (this.checked) {
+                    startTime.disabled = true;
+                    endTime.disabled = true;
+                } else {
+                    startTime.disabled = false;
+                    endTime.disabled = false;
+                }
+            });
+    
+            document.getElementById('startTime').addEventListener('input', function() {
+                var startTime = this.value;
+                document.getElementById('endTime').setAttribute('min', startTime);
+            });
+    
+            document.getElementById('endTime').addEventListener('input', function() {
+                var startTime = document.getElementById('startTime').value;
+                var endTime = this.value;
+                if (endTime < startTime) {
+                    alert('End time must be later than start time.');
+                    this.value = '';
+                }
+            });
+    
+            document.getElementById('addForm').addEventListener('submit', function(event) {
+                // Update hidden inputs with the values of the corresponding inputs
+                if (document.getElementById('startTime').disabled) {
+                    document.getElementById('startTime').disabled = false
+                    document.getElementById('endTime').disabled = false
+                    document.getElementById('hiddenAllDay').value = 'on'
+                }
+            });
+        });
+    </script>
+{% endblock %}

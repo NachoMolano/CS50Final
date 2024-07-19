@@ -1,0 +1,30 @@
+.container {
+    margin: 20px auto;
+}
+.form-switch .form-check-input {
+    width: 2.5em;
+    height: 1.5em;
+    background-color: #343a40;
+    border: 1px solid #343a40;
+}
+.form-switch .form-check-input:checked {
+    background-color: #007bff;
+    border: 1px solid #007bff;
+}
+.form-switch .form-check-input:focus {
+    box-shadow: none;
+}
+.form-switch .form-check-label {
+    line-height: 1.5em;
+}
+
+#description {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    background-color: #444;
+    border: 1px solid #555;
+    border-radius: 4px;
+    color: #f0f0f0;
+    font-size: 18px;
+}

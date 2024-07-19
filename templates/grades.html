@@ -1,0 +1,80 @@
+{% extends "layout.html" %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename="css/grades.css") }}">
+{% endblock %}
+
+{% block body %}
+
+<div class="container">
+    <h2 class="title"> Grades </h2>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div class="notification">
+            {{ messages[0] }}.
+        </div>
+    {% endif %}
+    {% endwith %}
+    
+    <div class="row row-cols-3">
+        {% for sub in subjects%}
+        <a href="{{ url_for("show_grades", subject=sub["subject"]) }}">
+            <div class="row row-cols-2 subjectBox" style="background-color: {{ sub['color'] }}">
+                <div>
+                    <h2> {{ sub['subject'] }} </h2>
+                    <p> Teacher: {{ sub['teacher'] }} </p>
+                </div>
+                <p id="average">Average: {% if sub['average'] != None %} {{ sub['average'] }} {% endif %} </p>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+    <button class="btn btn-primary btn-circle" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight" id="add">+</button>
+    <label for="add" class="label"><h2>Add Subject</h2></label>
+
+
+    <!-- Subject Add Offcanvas -->
+    <div class="container mt-5">
+
+        <div class="offcanvas offcanvas-end text-bg-dark" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title" id="offcanvasRightLabel">Add Subject</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <form id="addForm" action="/subjectAdd" method="post">
+                    <div class="mb-3">
+                    <label for="subject" class="form-label">Subject Name</label>
+                    <input type="text" class="form-control" name="subject" id="subject" placeholder="Enter the subject name" autocomplete="off" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="teacher" class="form-label">Teacher Name</label>
+                        <input type="text" class="form-control" name="teacher" id="teacher" placeholder="Enter the teacher name" autocomplete="off" required>
+                        </div>
+
+                    
+
+                    <div class="mb-3">
+                        <label class="form-label">Subject Color</label><br>
+                        <input type="radio" class="form-check-input me-1" name="color" id="red" value="rgb(213, 0, 0)">
+                        <input type="radio" class="form-check-input me-1" name="color" id="orange" value="rgb(51, 182, 121)">
+                        <input type="radio" class="form-check-input me-1" name="color" id="yellow" value="rgb(246, 191, 38)">
+                        <input type="radio" class="form-check-input me-1" name="color" id="green" value="rgb(51, 182, 121)">
+                        <input type="radio" class="form-check-input me-1" name="color" id="peacock" value="rgb(3, 155, 229)">
+                        <input type="radio" class="form-check-input me-1" name="color" id="blue" value="rgb(13, 110, 253)">
+                        <input type="radio" class="form-check-input me-1" name="color" id="purple" value="rgb(142, 36, 170)">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="submit">Add</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+    
+{% endblock %}

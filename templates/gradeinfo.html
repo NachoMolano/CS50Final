@@ -1,0 +1,141 @@
+{% extends "layout.html" %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename="css/grades.css") }}">
+{% endblock %}
+
+{% block body %}
+
+<div class="container">
+    <h1> {{ info['subject'] }} - {% if info['average'] != None %} {{ info['average'] }} / {{ info['suma'] }} {% endif %}</h1>
+    
+    <div id="main">
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="notification">
+                {{ messages[0] }}.
+            </div>
+        {% endif %}
+        {% endwith %}
+     
+        
+        {% for crit in info['criteria'] %}
+        <div class="container">
+            <hr>
+            <div class="row row-cols-3">
+                <h3>{{ crit['criteria'] }}   -   {{ crit['percentage'] }}% </h3>
+                <h5>Average: {{ crit['average'] }}</h5>
+                <div class="delete">
+                    <button type="button" class="btn btn-danger" onclick="deletePercentage('{{ crit['criteria']}}', '{{ crit['criteria_id'] }}', '{{ info['subject'] }}')" data-bs-toggle="modal" data-bs-target="#deleteModal">delete</button>
+                </div>
+            </div>
+            <ul>
+                {% for grade in crit['grades'] %}
+                <li>
+                    <h5>{{ grade['task'] }} : {{ grade['grade'] }}</h5> 
+                    <hr>
+                </li>
+                {% endfor %}
+            </ul>
+            <button  class="btn btn-primary small-circle" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasGrade" aria-controls="offcanvasGrade" onclick="gradeUrl('{{ info['subject'] }}', '{{ crit['criteria_id'] }}')">+</button>
+            <label for="add" class="label"><h4>Add Grade</h4></label>
+        </div>
+        {% endfor %}
+        
+        <button  class="btn btn-primary btn-circle" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasPercentage" aria-controls="offcanvasPercentage" id="add">+</button>
+        <label for="add" class="label"><h2>Add Percentage</h2></label>
+    </div>
+
+    <div class="footer">
+        <button type="button" class="btn btn-danger" onclick="deleteSubject('{{ info['subject'] }}', {{ info['subject_id'] }})" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete Subject</button>  
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content text-bg-dark" >
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Are you sure?</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <p id="deleteText" style="font-size: 20px;"></p>
+        </div>
+        <div class="modal-footer">
+            <form id="deleteForm" method="post">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-outline-danger">Delete</button>
+            </form>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+
+
+<!-- Percentage Add Off Canvas-->
+
+<div class="container mt-5">
+    <div class="offcanvas offcanvas-end text-bg-dark" tabindex="-1" id="offcanvasPercentage" aria-labelledby="offcanvasPercentage">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasPercentage">Add Percentage</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+
+        <div class="offcanvas-body">
+            <form  action="{{ url_for("percentageAdd", subject=info['subject']) }}" method="post">
+                <div class="mb-3">
+                    <label class="form-label" for="criteria">Section Name:</label>
+                    <input type="text" class="form-control" name="criteria" id="criteria" placeholder="Name" autocomplete="off" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="number">Percentage:</label><br>
+                    <div class="num_container">
+                        <button type="button" id="decrement" onclick="stepper(this, 'number')">-</button>
+                        <input type="number" id="number" name="percentage" value=5 min="5" max="{{ 100 - info['suma'] }}" step="5">
+                        <button type="button" id="increment" onclick="stepper(this, 'number')">+</button>
+                    </div>    
+                </div>
+                <button class="btn btn-primary" id="submit">Add Percentage</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Grade Add Offcanvas -->
+
+<div class="container mt-5">
+    <div class="offcanvas offcanvas-end text-bg-dark" tabindex="-1" id="offcanvasGrade" aria-labelledby="offcanvasGrade">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasGrade">Add Grade</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+
+        <div class="offcanvas-body">
+            <form method="post" id="gradeForm">
+                <div class="mb-3">
+                    <label class="form-label" for="task">Task Name:</label>
+                    <input type="text" class="form-control" name="task" id="task" placeholder="Name" autocomplete="off" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="grade">Grade:</label><br>
+                    <div class="num_container">
+                        <button type="button" id="decrement" onclick="stepper(this, 'grade')"><</button>
+                        <input type="number" id="grade" name="grade" value="10" min="1" max="100" step="1">
+                        <button type="button" id="increment" onclick="stepper(this, 'grade')">></button> 
+                        <h4>  / 100 </h4>
+                    </div>    
+                </div>
+                <button class="btn btn-primary" id="submit">Add Grade</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+<script src="{{ url_for('static', filename="js/gradeinfo.js") }}"></script>
+{% endblock %}
