@@ -1,9 +1,19 @@
 {% extends "layout.html" %}
 {% block head %}
-<link rel="stylesheet" href="static/chat.css">
-
+<link rel="stylesheet" href="{{ url_for("static", filename="css/chat.css") }}">
+<script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 {% endblock %}
 
 {% block body %}
+<div class="container" id="chat">
+    <h1>Chat</h1>
+    <div id="messages"></div>
+    <form id="message-form">
+        <input id="message-input" autocomplete="off" placeholder="Type a message..."/>
+        <button id="send-button">Send</button>
+    </form>
+</div>
 
+<script src="{{ url_for('static', filename="js/chat.js") }}"></script>
 {% endblock %}

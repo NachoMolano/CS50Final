@@ -1,9 +1,10 @@
 import os
 
 import sqlite3
-from flask import Flask, flash, redirect, render_template, request, session, url_for
+from flask import Flask, flash, redirect, render_template, request, session, url_for, jsonify
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
+from flask_socketio import SocketIO, Namespace, send
 
 from helpers import check_email
 
@@ -19,6 +20,7 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 Session(app)
+socketio = SocketIO(app)
 
 # Connect SQL Database
 def get_db_connection():
@@ -67,6 +69,8 @@ def login():
 
         # Remember which user has logged in
         session["user_id"] = rows[0]["id"]
+        global username 
+        session['username'] = rows[0]["name"]
 
         # Redirect user to home page
         return redirect("/")
@@ -271,10 +275,8 @@ def show_grades(subject):
         if currentSubject:
             
             cursor.execute("SELECT SUM(percentage) FROM criteria WHERE subject_id=?", (currentSubject,))
-            suma = cursor.fetchall()
-            if suma:
-                suma = suma[0]['SUM(percentage)']
-            else: 
+            suma = cursor.fetchall()[0]['SUM(percentage)']
+            if not suma:
                 suma = 0
             
             cursor.execute("SELECT * FROM criteria WHERE subject_id=?", (currentSubject,))
@@ -283,7 +285,10 @@ def show_grades(subject):
             cursor.execute("SELECT SUM((percentage*average)/100) FROM criteria WHERE subject_id=?", (currentSubject,))
             average = cursor.fetchall()[0]['SUM((percentage*average)/100)']
             
-            cursor.execute("UPDATE subjects SET average=? WHERE subject_id=?", ((average/suma)*100, currentSubject))
+            if suma and average:
+                cursor.execute("UPDATE subjects SET average=? WHERE subject_id=?", ((average/suma)*100, currentSubject))
+            else:
+                cursor.execute("UPDATE subjects SET average=? WHERE subject_id=?", (0, currentSubject))
             conn.commit()
             
             for crit in criteria:
@@ -306,7 +311,7 @@ def percentageAdd(subject):
         criteria = request.form["criteria"]
         percentage = int(request.form["percentage"])       
         
-        if suma and (suma + percentage) > 100:
+        if suma != 0 and (suma + percentage) > 100:
             flash("Percentages must add to 100")
             return redirect(f"/grades/{subject}")
         
@@ -345,5 +350,31 @@ def gradeAdd(subject, criteria):
             
         return redirect(f"/grades/{subject}")
  
+# Chat
+@app.route('/chat')
+def render_chat():
+    conn = get_db_connection()
+    messages = conn.execute("SELECT content, user_id, timestamp FROM messages ORDER BY timestamp ASC").fetchall()
+    conn.close()
+    return render_template('chat.html')
+
+@app.route("/messages")
+def display_messages():
+    conn = get_db_connection()
+    messages = conn.execute("SELECT content, user_id, timestamp FROM messages ORDER BY timestamp ASC").fetchall()
+    conn.close()
+    return jsonify(messages=[dict(row) for row in messages], current_user=session['user_id'])
+                   
+                   
+class chatNamespace(Namespace):
+    def on_message(self, msg):
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO messages (content, user_id) VALUES (?, ?)", (msg, session['user_id']))
+            conn.commit()
+            send(msg, broadcast=True, namespace='/chat')
+
+socketio.on_namespace(chatNamespace('/chat'))
+ 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    socketio.run(debug=True, port=5000)

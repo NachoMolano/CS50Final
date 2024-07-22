@@ -11,7 +11,7 @@ def init_db():
             lastname TEXT NOT NULL,
             email TEXT NOT NULL,
             hash TEXT NOT NULL
-        );
+        )
         CREATE TABLE IF NOT EXISTS events (
             id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
             user_id INTEGER NOT NULL,
@@ -22,7 +22,7 @@ def init_db():
             url TEXT,
             color TEXT,
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-        );
+        )
         CREATE TABLE IF NOT EXISTS subjects (
             subject_id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER,
@@ -31,7 +31,7 @@ def init_db():
             color TEXT,
             average FLOAT,
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-        );
+        )
         CREATE TABLE IF NOT EXISTS criteria (
             criteria_id INTEGER PRIMARY KEY AUTOINCREMENT,
             subject_id INTEGER,
@@ -40,14 +40,23 @@ def init_db():
             average FLOAT,
             FOREIGN KEY (subject_id) REFERENCES subjects (subject_id)
             ON DELETE CASCADE
-        );
+        )
         CREATE TABLE IF NOT EXISTS grades (
             criteria_id INTEGER,
             task TEXT NOT NULL,
             grade INTEGER NOT NULL,
             FOREIGN KEY (criteria_id) REFERENCES criteria (criteria_id)
             ON DELETE CASCADE
-        );      
+        )
+        CREATE TABLE IF NOT EXISTS messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            content TEXT NOT NULL,
+            user_id INTEGER NOT NULL,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+            ON DELETE CASCADE
+        );
+       
                           
     ''')
     
