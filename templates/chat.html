@@ -6,14 +6,36 @@
 {% endblock %}
 
 {% block body %}
-<div class="container" id="chat">
-    <h1>Chat</h1>
-    <div id="messages"></div>
-    <form id="message-form">
-        <input id="message-input" autocomplete="off" placeholder="Type a message..."/>
-        <button id="send-button">Send</button>
-    </form>
-</div>
+<div class="container">
 
+    <div class="row">
+        <div class="col-4">
+            <div data-bs-spy="scroll" class="h-100 flex-column align-items-stretch pe-4 border-end">
+                <h3>Class Members</h3>
+                <div id="class-members">
+                    <hr>
+                    <div class="you member"> Me ({{ user[0] }} {{ user[1] }})</div>
+                    {% for member in members %}
+                    <hr>
+                    <div class="member">{{ member['name'] }}  {{ member['lastname'] }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+      
+        <div class="col-8" id="chat">
+            <div data-bs-spy="scroll" data-bs-target="#navbar-example3" data-bs-smooth-scroll="true" class="scrollspy-example-2" tabindex="0">
+                <h3>Class Chat</h3>
+                <div id="messages">
+                </div>
+                <form id="message-form">
+                    <input type="text" id="message-input" autocomplete="off" autofocus="on" placeholder="Type a message..."/>
+                    <button class="btn btn-success" id="send-button">Send</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
 <script src="{{ url_for('static', filename="js/chat.js") }}"></script>
 {% endblock %}

@@ -10,7 +10,18 @@ $(document).ready(function() {
     });
 
     socket.on('message', function(msg) {
-        $('#messages').append($('<div>').text(msg));
+        $('#messages').append($(`
+            <div class="message" id="user_message">
+                <div class="message-box">
+                    <div class="message-content">
+                        ${msg} 
+                    </div>
+                    <div class="message-timestamp">
+                        now
+                    </div>
+                </div>
+            </div>
+            `))
     });
 
     $.getJSON('/messages', function(data) {
@@ -19,10 +30,35 @@ $(document).ready(function() {
 
         messages.forEach(function(messages) {
             if (messages.user_id == current) {
-                $('#messages').append($('<div id="user_message">').text(`${current}: ${messages.content}`))
+                $('#messages').append($(`
+                    <div class="message" id="user_message">
+                        <div class="message-box">
+                            <div class="message-content">
+                                ${messages.content} 
+                            </div>
+                            <div class="message-timestamp">
+                                ${messages.timestamp.slice(11, 16)}
+                            </div>
+                        </div>
+                    </div>
+                    `))
             }
             else {
-                $('#messages').append($('<div>').text(`${current}: ${messages.content}`))
+                $('#messages').append($(`
+                    <div class="message" id="other_message">
+                        <div class="message-box">
+                            <div class="message-header"> 
+                            ${messages.username}
+                            </div>
+                            <div class="message-content">
+                                ${messages.content} 
+                            </div>
+                            <div class="message-timestamp">
+                                ${messages.timestamp.slice(11, 16)}
+                            </div>
+                        </div>
+                    </div>
+                    `))
             }
         }) 
     })

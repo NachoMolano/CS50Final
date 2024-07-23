@@ -22,7 +22,7 @@
         
         <div class="container">
             <div class="logo-section">
-                <img src="logo.png" alt="SCHOOLER Logo" class="logo">
+                <img src="{{ url_for('static', filename="images/logo.png") }}" alt="SCHOOLER Logo" class="logo">
             </div>
             <div class="login-section">
                 <div class="login-box">
@@ -38,7 +38,7 @@
     
                     <form action="/login" method="post">
                         <div class="mb-4">
-                            <input type="text" class="form-control" name="email" placeholder="Email">
+                            <input type="text" class="form-control" name="email" placeholder="Email" autocomplete="off">
                         </div>
                         <div class="mb-4">
                             <input type="password" class="form-control" name="password" placeholder="Password">

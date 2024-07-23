@@ -31,7 +31,7 @@ def get_db_connection():
 @app.route("/")
 def index():
     if 'user_id' in session:
-        return render_template("index.html")
+        return render_template("index.html", user=[session['username'], session['lastname']])
     return redirect("/login")
 
 # Login and Signin
@@ -69,8 +69,8 @@ def login():
 
         # Remember which user has logged in
         session["user_id"] = rows[0]["id"]
-        global username 
         session['username'] = rows[0]["name"]
+        session['lastname'] = rows[0]['lastname']
 
         # Redirect user to home page
         return redirect("/")
@@ -162,7 +162,7 @@ def calendar():
             'color': row['color']
         })
     
-    return render_template("calendar.html", events=events)
+    return render_template("calendar.html", events=events, user=[session['username'], session['lastname']])
 
 @app.route("/eventAdd", methods=["GET", "POST"])
 def eventAdd():
@@ -227,7 +227,7 @@ def grades():
             'average': row['average']
         })
         
-    return render_template("grades.html", subjects=subjects)
+    return render_template("grades.html", subjects=subjects, user=[session['username'], session['lastname']])
 
 @app.route("/subjectAdd", methods=["GET", "POST"])
 def subjectAdd():
@@ -280,7 +280,7 @@ def show_grades(subject):
                 suma = 0
             
             cursor.execute("SELECT * FROM criteria WHERE subject_id=?", (currentSubject,))
-            criteria = cursor.fetchall()
+            criteria = [dict(row) for row in cursor.fetchall()]
             
             cursor.execute("SELECT SUM((percentage*average)/100) FROM criteria WHERE subject_id=?", (currentSubject,))
             average = cursor.fetchall()[0]['SUM((percentage*average)/100)']
@@ -302,7 +302,7 @@ def show_grades(subject):
                 'criteria' : criteria,
                 'suma' : suma
             }
-            return render_template("gradeinfo.html", info=info)
+            return render_template("gradeinfo.html", info=info, user=[session['username'], session['lastname']])
         return redirect("/grades")
 
 @app.route('/percentageAdd/<subject>', methods=["POST", "GET"])
@@ -353,15 +353,16 @@ def gradeAdd(subject, criteria):
 # Chat
 @app.route('/chat')
 def render_chat():
-    conn = get_db_connection()
-    messages = conn.execute("SELECT content, user_id, timestamp FROM messages ORDER BY timestamp ASC").fetchall()
-    conn.close()
-    return render_template('chat.html')
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT name, lastname FROM users WHERE id<>?", (session['user_id'],))
+        members = [dict(row) for row in cursor.fetchall()]
+    return render_template('chat.html', user=[session['username'], session['lastname']], members=members)
 
 @app.route("/messages")
 def display_messages():
     conn = get_db_connection()
-    messages = conn.execute("SELECT content, user_id, timestamp FROM messages ORDER BY timestamp ASC").fetchall()
+    messages = conn.execute("SELECT content, user_id, username, timestamp FROM messages ORDER BY timestamp ASC").fetchall()
     conn.close()
     return jsonify(messages=[dict(row) for row in messages], current_user=session['user_id'])
                    
@@ -370,7 +371,7 @@ class chatNamespace(Namespace):
     def on_message(self, msg):
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO messages (content, user_id) VALUES (?, ?)", (msg, session['user_id']))
+            cursor.execute("INSERT INTO messages (content, user_id, username, timestamp) VALUES (?, ?, ?, datetime('now', 'localtime'))", (msg, session['user_id'], session['username']))
             conn.commit()
             send(msg, broadcast=True, namespace='/chat')
 
