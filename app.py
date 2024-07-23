@@ -121,6 +121,8 @@ def signup():
             row = cursor.fetchall()
             
         session["user_id"] = row[0]['id']
+        session['username'] = row[0]["name"]
+        session['lastname'] = row[0]['lastname']
 
         return redirect("/")
     else:
