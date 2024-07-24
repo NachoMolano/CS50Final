@@ -1,6 +1,9 @@
 {% extends "layout.html" %}
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename="css/grades.css") }}">
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+
 {% endblock %}
 
 {% block body %}
@@ -31,19 +34,33 @@
             </div>
             <ul>
                 {% for grade in crit['grades'] %}
-                <li>
-                    <h5>{{ grade['task'] }} : {{ grade['grade'] }}</h5> 
-                    <hr>
-                </li>
+                <div class="row row-cols-2" id="gradeDiv">
+
+                    <li><h5>{{ grade['task'] }} : {{ grade['grade'] }}</h5></li>
+                    <div id="gradeDeleteDiv">
+                        <button id="popoverButton" type="button" class="btn btn-transparent text-white" data-toggle="popover" title="Form Popover">
+                        ...
+                        </button>
+                
+                        <div id="popoverContent" style="display: none;">
+                            <form action="{{ url_for('gradeDelete', subject=info['subject'], criteria=info['criteria'], grade=grade['id']) }}">
+                                <button type="submit" id="deleteGrade" class="btn btn-outline-danger">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <hr>
                 {% endfor %}
             </ul>
-            <button  class="btn btn-primary small-circle" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasGrade" aria-controls="offcanvasGrade" onclick="gradeUrl('{{ info['subject'] }}', '{{ crit['criteria_id'] }}')">+</button>
+            <button class="btn btn-primary small-circle" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasGrade" aria-controls="offcanvasGrade" onclick="gradeUrl('{{ info['subject'] }}', '{{ crit['criteria_id'] }}')">+</button>
             <label for="add" class="label"><h4>Add Grade</h4></label>
         </div>
         {% endfor %}
-        
-        <button  class="btn btn-primary btn-circle" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasPercentage" aria-controls="offcanvasPercentage" id="add">+</button>
-        <label for="add" class="label"><h2>Add Percentage</h2></label>
+
+        {% if info['suma'] < 100 %}
+            <button  class="btn btn-primary btn-circle" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasPercentage" aria-controls="offcanvasPercentage" id="add">+</button>
+            <label for="add" class="label"><h2>Add Percentage</h2></label>
+        {% endif %}
     </div>
 
     <div class="footer">
@@ -135,7 +152,5 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
 <script src="{{ url_for('static', filename="js/gradeinfo.js") }}"></script>
 {% endblock %}

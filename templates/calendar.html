@@ -102,85 +102,46 @@
         </div>
     </div>
 
+    <script src="{{ url_for('static', filename="js/calendar.js") }}"></script>
     <script>
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            events: [
+                {% for event in events %}
+                {
+                    id: '{{event.id}}',
+                    title: '{{event.title}}',
+                    start: '{{event.start}}',
+                    end: '{{event.end}}',
+                    url: '{{event.url}}',
+                    description: '{{event.description}}',
+                    backgroundColor: '{{event.color}}',
+                    borderColor: '{{event.color}}'
+                },
+                {% endfor %}
+            ],
+            eventClick: function(info) {
+                info.jsEvent.preventDefault();
+                
+                document.getElementById('modalTitle').innerText = info.event.title;
+                document.getElementById('modalDescription').innerText = info.event.extendedProps.description;
+                document.getElementById('event_id').value = info.event.id;
 
-        document.addEventListener('DOMContentLoaded', function() {
-            var calendarEl = document.getElementById('calendar');
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                events: [
-                    {% for event in events %}
-                    {
-                        id: '{{event.id}}',
-                        title: '{{event.title}}',
-                        start: '{{event.start}}',
-                        end: '{{event.end}}',
-                        url: '{{event.url}}',
-                        description: '{{event.description}}',
-                        backgroundColor: '{{event.color}}',
-                        borderColor: '{{event.color}}'
-                    },
-                    {% endfor %}
-                ],
-                eventClick: function(info) {
-                    info.jsEvent.preventDefault();
-                    
-                    document.getElementById('modalTitle').innerText = info.event.title;
-                    document.getElementById('modalDescription').innerText = info.event.extendedProps.description;
-                    document.getElementById('event_id').value = info.event.id;
-    
-                    if (info.event.allDay) {
-                        document.getElementById('modalStart').innerText = info.event.start.toDateString();
-                        document.getElementById('modalEnd').innerText = info.event.end ? info.event.end.toDateString() + 'All Day' : 'All Day';
-                    }
-                    else {   
-                        document.getElementById('modalStart').innerText = info.event.start.toLocaleString();
-                        document.getElementById('modalEnd').innerText = info.event.end.toLocaleString();
-                    }
-                    
-                    // Show the modal
-                    var eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
-                    eventModal.show();
+                if (info.event.allDay) {
+                    document.getElementById('modalStart').innerText = info.event.start.toDateString();
+                    document.getElementById('modalEnd').innerText = info.event.end ? info.event.end.toDateString() + 'All Day' : 'All Day';
                 }
-            });
-            calendar.render();
-    
-    
-            document.getElementById('toggleSwitch').addEventListener('change', function() {
-                var startTime = document.getElementById('startTime');
-                var endTime = document.getElementById('endTime');
-    
-                if (this.checked) {
-                    startTime.disabled = true;
-                    endTime.disabled = true;
-                } else {
-                    startTime.disabled = false;
-                    endTime.disabled = false;
+                else {   
+                    document.getElementById('modalStart').innerText = info.event.start.toLocaleString();
+                    document.getElementById('modalEnd').innerText = info.event.end.toLocaleString();
                 }
-            });
-    
-            document.getElementById('startTime').addEventListener('input', function() {
-                var startTime = this.value;
-                document.getElementById('endTime').setAttribute('min', startTime);
-            });
-    
-            document.getElementById('endTime').addEventListener('input', function() {
-                var startTime = document.getElementById('startTime').value;
-                var endTime = this.value;
-                if (endTime < startTime) {
-                    alert('End time must be later than start time.');
-                    this.value = '';
-                }
-            });
-    
-            document.getElementById('addForm').addEventListener('submit', function(event) {
-                // Update hidden inputs with the values of the corresponding inputs
-                if (document.getElementById('startTime').disabled) {
-                    document.getElementById('startTime').disabled = false
-                    document.getElementById('endTime').disabled = false
-                    document.getElementById('hiddenAllDay').value = 'on'
-                }
-            });
+                
+                // Show the modal
+                var eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
+                eventModal.show();
+            }
         });
+        calendar.render();
     </script>
 {% endblock %}

@@ -351,6 +351,14 @@ def gradeAdd(subject, criteria):
                 conn.commit()
             
         return redirect(f"/grades/{subject}")
+    
+@app.route('/delete/<subject>/<criteria>/<grade>', methods=["POST", "GET"])
+def gradeDelete(subject, criteria, grade):
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM grades WHERE id=?", (int(grade),))
+        conn.commit()
+    return redirect(f"/grades/{subject}")
  
 # Chat
 @app.route('/chat')
@@ -380,4 +388,4 @@ class chatNamespace(Namespace):
 socketio.on_namespace(chatNamespace('/chat'))
  
 if __name__ == "__main__":
-    socketio.run(debug=True, port=5000)
+    socketio.run(app, debug=True, port=5000)

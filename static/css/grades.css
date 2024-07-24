@@ -95,3 +95,13 @@ h4 {
 .footer {
     padding: 30px 0;
 }
+
+#gradeDeleteDiv {
+    text-align: right;
+}
+#popoverButton {
+    font-size: 20px;
+}
+h5 {
+    margin-top: 10px;
+}
