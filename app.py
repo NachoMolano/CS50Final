@@ -150,7 +150,7 @@ def calendar():
     
     with get_db_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM events WHERE user_id=?", (session['user_id'],))
+        cursor.execute("SELECT * FROM events")
         eventRows = cursor.fetchall()
 
     for row in eventRows:
