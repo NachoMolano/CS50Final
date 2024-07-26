@@ -38,12 +38,12 @@
 
                     <li><h5>{{ grade['task'] }} : {{ grade['grade'] }}</h5></li>
                     <div id="gradeDeleteDiv">
-                        <button id="popoverButton" type="button" class="btn btn-transparent text-white" data-toggle="popover" title="Form Popover">
+                        <button for="{{ grade['id'] }}" type="button" class="btn btn-transparent text-white popoverButton" data-toggle="popover" title="Form Popover">
                         ...
                         </button>
                 
-                        <div id="popoverContent" style="display: none;">
-                            <form action="{{ url_for('gradeDelete', subject=info['subject'], criteria=info['criteria'], grade=grade['id']) }}">
+                        <div id="{{ grade['id'] }}" class="popoverContent" style="display: none;">
+                            <form action="{{ url_for('gradeDelete', subject=info['subject'], criteria=crit['criteria_id'], grade=grade['id']) }}">
                                 <button type="submit" id="deleteGrade" class="btn btn-outline-danger">Delete</button>
                             </form>
                         </div>
@@ -153,4 +153,43 @@
 </div>
 
 <script src="{{ url_for('static', filename="js/gradeinfo.js") }}"></script>
+<script>
+    $(document).ready(function() {
+        const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
+        const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
+
+        let buttons = document.querySelectorAll('.popoverButton')
+        let content = document.querySelectorAll('.popoverContent')
+        for (let i=0; i<buttons.length; i++) {
+            let id = buttons[i].getAttribute("for")
+        
+            $(buttons[i]).popover({
+                html: true,
+                content: $('#' + id).html(),
+                placement: 'left', 
+                template: '<div class="popover-dark" role="tooltip"></h3><div class="popover-body"></div></div>'
+            });
+    
+            $('.popover-body').addClass('text-bg-dark')
+    
+            $(buttons[i]).on('shown.bs.popover', function () {
+                var popoverId = $(this).attr('aria-describedby');
+                var $popover = $('#' + popoverId);
+                $popover.find('.popover-body').html($('#' + id).html());
+            });
+        }
+        
+        $('.popoverButton')
+    
+    
+        $(document).on('click', function(e){
+            var target = $(e.target);
+    
+            // Check if the click was outside the popover and button
+            if (!target.closest('#popoverButton').length && !target.closest('.popover').length) {
+                $('#popoverButton').popover('hide');
+            }
+        })
+    });  
+</script>
 {% endblock %}

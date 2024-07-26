@@ -28,6 +28,7 @@
                 <div class="modal-body">
                     <h2 id="modalTitle"></h2>
                     <p id="modalDescription"></p>
+                    <p><strong>URL: </strong><a class="link" id="modalUrl"></a></p>
                     <p><strong>Start:</strong> <span id="modalStart"></span></p>
                     <p><strong>End:</strong> <span id="modalEnd"></span></p>
                     <span name="eventId" id="eventId"></span>
@@ -127,10 +128,12 @@
                 document.getElementById('modalTitle').innerText = info.event.title;
                 document.getElementById('modalDescription').innerText = info.event.extendedProps.description;
                 document.getElementById('event_id').value = info.event.id;
+                document.getElementById('modalUrl').innerText = info.event.url;
+                document.getElementById('modalUrl').setAttribute('href', info.event.url)
 
                 if (info.event.allDay) {
                     document.getElementById('modalStart').innerText = info.event.start.toDateString();
-                    document.getElementById('modalEnd').innerText = info.event.end ? info.event.end.toDateString() + 'All Day' : 'All Day';
+                    document.getElementById('modalEnd').innerText = info.event.end ? info.event.end.toDateString() : 'All Day';
                 }
                 else {   
                     document.getElementById('modalStart').innerText = info.event.start.toLocaleString();

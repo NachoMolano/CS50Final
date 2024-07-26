@@ -24,7 +24,7 @@ body {
 }
 
 .btn-primary {
-    box-shadow: 5px 5px 40px rgba(0, 0, 0, 1);
+    box-shadow: 5px 5px 10px rgb(31, 31, 31);
 }
 
 .btn-circle {
@@ -52,6 +52,11 @@ body {
 a {
     text-decoration: none;
     color: #f0f0f0;
+}
+
+a.link {
+    text-decoration: underline;
+    color: #007bff;
 }
 
 .btn-custom:hover {

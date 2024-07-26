@@ -2,13 +2,17 @@
 document.getElementById('toggleSwitch').addEventListener('change', function() {
     var startTime = document.getElementById('startTime');
     var endTime = document.getElementById('endTime');
+    var endDate = document.getElementById('endDate')
 
     if (this.checked) {
         startTime.disabled = true;
         endTime.disabled = true;
+        endDate.disabled = true;
+        endDate.value = $('#startDate').value
     } else {
         startTime.disabled = false;
         endTime.disabled = false;
+        endDate.disabled = false;
     }
 });
 
@@ -38,6 +42,8 @@ document.getElementById('addForm').addEventListener('submit', function(event) {
     if (document.getElementById('startTime').disabled) {
         document.getElementById('startTime').disabled = false
         document.getElementById('endTime').disabled = false
+        document.getElementById('endDate').disabled = false;
         document.getElementById('hiddenAllDay').value = 'on'
     }
+
 });

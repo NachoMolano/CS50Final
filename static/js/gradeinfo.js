@@ -36,33 +36,5 @@ function gradeUrl(subject, criteria) {
     form.setAttribute('action', `../gradeAdd/${subject}/${criteria}`)
 }
 
-$(document).ready(function() {
-    const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
-    const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
 
-    var popoverContent = $('#popoverContent').html();
-
-    $('#popoverButton').popover({
-        html: true,
-        content: popoverContent,
-        placement: 'left', 
-        template: '<div class="popover-dark" role="tooltip"></h3><div class="popover-body"></div></div>'
-    });
-    $('.popover-body').addClass('text-bg-dark')
-
-    $('#popoverButton').on('shown.bs.popover', function () {
-        var popoverId = $(this).attr('aria-describedby');
-        var $popover = $('#' + popoverId);
-        $popover.find('.popover-body').html(popoverContent);
-    });
-
-    $(document).on('click', function(e){
-        var target = $(e.target);
-
-        // Check if the click was outside the popover and button
-        if (!target.closest('#popoverButton').length && !target.closest('.popover').length) {
-            $('#popoverButton').popover('hide');
-        }
-    })
-});
 

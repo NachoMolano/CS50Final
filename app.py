@@ -1,5 +1,3 @@
-import os
-
 import sqlite3
 from flask import Flask, flash, redirect, render_template, request, session, url_for, jsonify
 from flask_session import Session
@@ -8,9 +6,6 @@ from flask_socketio import SocketIO, Namespace, send
 
 from helpers import check_email
 
-# Events element
-
-events = []
 
 # Configure App
 app = Flask(__name__)
@@ -24,7 +19,7 @@ socketio = SocketIO(app)
 
 # Connect SQL Database
 def get_db_connection():
-    conn = sqlite3.connect('schooler.db')
+    conn = sqlite3.connect('Databases/schooler.db')
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -33,6 +28,8 @@ def index():
     if 'user_id' in session:
         return render_template("index.html", user=[session['username'], session['lastname']])
     return redirect("/login")
+
+
 
 # Login and Signin
 @app.route("/login", methods=["GET", "POST"])
@@ -94,25 +91,29 @@ def signup():
             cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
             usedEmail = cursor.fetchall()
             
+            error = False
             if not name or not lastname:
                 flash("Must provide name and last name")
-                return redirect("/signup")
-            elif not email:
+                error = True
+            if not email:
                 flash("Must provide email")
-                return redirect("/signup")
-            elif not check_email(email):
+                error = True
+            if not check_email(email):
                 flash("Must provide valid email")
-                return redirect("/signup")
-            elif usedEmail:
+                error = True
+            if usedEmail:
                 flash("Email already in use")
-                return redirect("/signup")
-            elif not password:
+                error = True
+            if not password:
                 flash("Must provide a password")
-                return redirect("/signup")
-            elif not confirmation or password != confirmation:
+                error = True
+            if not confirmation or password != confirmation:
                 flash("Passwords do not match")
-                return redirect("/signup")
+                error = True
 
+            if error:
+                return redirect('/signup')
+            
             cursor = conn.cursor()
             cursor.execute("INSERT INTO users(name, lastname, email, hash) VALUES(?, ?, ?, ?)", (name, lastname, email, generate_password_hash(password),))
             conn.commit()
@@ -128,7 +129,6 @@ def signup():
     else:
         return render_template("signup.html")
 
-
 @app.route("/forgot")
 def forgot():
     return render_template("forgot.html")
@@ -139,7 +139,12 @@ def signout():
     return redirect("/login")
 
 
+
+
+
 # Calendar
+
+events = []
 
 @app.route("/calendar")
 def calendar():
@@ -206,7 +211,10 @@ def delete():
     return redirect("/calendar")
 
 
-# Grades
+
+
+
+# Gradebook
 
 @app.route("/grades", methods=["GET", "POST"])
 def grades():
@@ -329,40 +337,54 @@ def percentageDelete(subject, criteria):
     if request.method == "POST":
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("DELETE FROM grades WHERE criteria_id=?", (criteria))
-            cursor.execute("DELETE FROM criteria WHERE criteria_id=?", (criteria)) 
+            cursor.execute("DELETE FROM grades WHERE criteria_id=?", (criteria,))
+            cursor.execute("DELETE FROM criteria WHERE criteria_id=?", (criteria,)) 
             conn.commit()
     return redirect(f"/grades/{subject}")
 
 @app.route('/gradeAdd/<subject>/<criteria>', methods=["POST", "GET"])
 def gradeAdd(subject, criteria):
-        if request.method == "POST":
-            with get_db_connection() as conn:
-                cursor = conn.cursor()
-                task = request.form["task"]
-                grade = int(request.form["grade"])
-                
-                cursor.execute("INSERT INTO grades (criteria_id, task, grade) VALUES (? ,? ,?)", (criteria, task, grade))
-                
-                cursor.execute("SELECT AVG(grade) FROM grades WHERE criteria_id=?", (criteria,))
-                avg = cursor.fetchall()[0]['AVG(grade)']
-                cursor.execute("UPDATE criteria SET average=? WHERE criteria_id=?", (avg, criteria))
-                
-                conn.commit()
+    if request.method == "POST":
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            task = request.form["task"]
+            grade = int(request.form["grade"])
+            
+            cursor.execute("INSERT INTO grades (criteria_id, task, grade) VALUES (? ,? ,?)", (criteria, task, grade))
+            
+            cursor.execute("SELECT AVG(grade) FROM grades WHERE criteria_id=?", (criteria,))
+            avg = cursor.fetchall()[0]['AVG(grade)']
+            cursor.execute("UPDATE criteria SET average=? WHERE criteria_id=?", (avg, criteria))
+            
+            conn.commit()
             
         return redirect(f"/grades/{subject}")
     
 @app.route('/delete/<subject>/<criteria>/<grade>', methods=["POST", "GET"])
 def gradeDelete(subject, criteria, grade):
     with get_db_connection() as conn:
-        cursor = conn.cursor()
+        cursor = conn.cursor()   
         cursor.execute("DELETE FROM grades WHERE id=?", (int(grade),))
         conn.commit()
+        
+        cursor.execute("SELECT AVG(grade) FROM grades WHERE criteria_id=?", (int(criteria),))
+        avg = cursor.fetchall()[0]['AVG(grade)']
+        if avg == None:
+            cursor.execute("UPDATE criteria SET average=0 WHERE criteria_id=?", (int(criteria),))
+        else:
+            cursor.execute("UPDATE criteria SET average=? WHERE criteria_id=?", (avg, int(criteria),))
+        conn.commit()
+        
     return redirect(f"/grades/{subject}")
+ 
+ 
+ 
  
 # Chat
 @app.route('/chat')
 def render_chat():
+    if 'user_id' not in session:
+        return redirect("/login")
     with get_db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT name, lastname FROM users WHERE id<>?", (session['user_id'],))
@@ -375,8 +397,7 @@ def display_messages():
     messages = conn.execute("SELECT content, user_id, username, timestamp FROM messages ORDER BY timestamp ASC").fetchall()
     conn.close()
     return jsonify(messages=[dict(row) for row in messages], current_user=session['user_id'])
-                   
-                   
+                                  
 class chatNamespace(Namespace):
     def on_message(self, msg):
         with get_db_connection() as conn:
